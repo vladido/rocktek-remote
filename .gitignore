@@ -1,0 +1,26 @@
+# Generated build output
+/dist/
+/bin/
+/obj/
+*.exe
+*.dll
+*.pdb
+
+# Local settings, device state and logs
+settings.json
+*-settings.json
+config-location.json
+state.json
+*.log
+*.tmp
+*.new
+
+# Private credentials and local editor files
+.env
+.env.*
+*.key
+*.pem
+*.private.txt
+.vs/
+.vscode/
+.idea/

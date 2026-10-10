@@ -1,0 +1,40 @@
+name: Build release files
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    if: ${{ github.server_url != 'https://github.com' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$(id -u)" -eq 0 ]; then
+            apt_command=(apt-get)
+          else
+            apt_command=(sudo apt-get)
+          fi
+          "${apt_command[@]}" update
+          "${apt_command[@]}" install -y --no-install-recommends \
+            mono-mcs libmono-system-windows-forms4.0-cil \
+            libmono-system-drawing4.0-cil libmono-system-web-extensions4.0-cil zip
+      - name: Compile and package
+        shell: bash
+        run: bash ./build.sh
+      - name: Upload release files
+        uses: actions/upload-artifact@v3
+        with:
+          name: rocktek-remote-release
+          path: |
+            dist/RockTekRemote.exe
+            dist/RockTekRemoteSetup.exe
+            dist/RockTekRemote-portable.zip
+            dist/SHA256SUMS
+          if-no-files-found: error
