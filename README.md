@@ -2,31 +2,41 @@
 
 <p align="center"><img src="assets/app-icon.png" width="128" alt="RockTek Remote"></p>
 
-**[Полная документация на русском](README.ru.md)**
+**[Full English documentation](README.en.md)**
 
-A per-user Windows application for mapping a RockTek RC-G2 Bluetooth remote to keyboard shortcuts, application opening, files and links, mouse clicks and action sequences. Includes a graphical editor, button learning, light/dark themes, a tray menu and a self-contained installer. The interface defaults to **English**; select **Русский** in the editor to use Russian.
+Приложение Windows для назначения кнопкам Bluetooth-пульта RockTek RC-G2 сочетаний клавиш, открытия приложений, файлов и ссылок, щелчков мыши и последовательностей действий. В комплекте графический редактор, обнаружение кнопок, светлая/тёмная тема, меню в трее и самостоятельный установщик. Интерфейс по умолчанию **английский**; выберите **Русский** в верхней части редактора.
 
-## Requirements and limitations
+## Требования и ограничения
 
-- 64-bit Windows with .NET Framework 4.x and Windows PowerShell. Designed for Windows 11.
-- A paired RC-G2 remote whose input matches the supported Consumer HID reports (report ID `02`, five bytes) or Keyboard Raw Input packets.
-- The remote's Bluetooth address must be configured explicitly. No personal device address is built into the application.
-- Run as the normal interactive user. Windows can block input sent to elevated applications.
-- No service, custom driver, AutoHotkey or administrator installation is required. The executables are unsigned.
+- 64-битная Windows, .NET Framework 4.x и Windows PowerShell. Приложение рассчитано на Windows 11.
+- Сопряжённый RC-G2, передающий поддерживаемые Consumer HID-пакеты (ID `02`, пять байтов) либо Keyboard Raw Input.
+- Bluetooth-адрес своего пульта необходимо указать явно. Персональный адрес устройства не встроен в исходники.
+- Запускайте программу от обычного пользователя в интерактивном сеансе: Windows может блокировать отправку ввода в приложения с повышенными правами.
+- Не нужны служба, сторонний драйвер, AutoHotkey или права администратора при установке. EXE не подписаны.
 
-Support is limited to events Windows actually receives. A button that sends no supported Bluetooth event cannot be assigned. Some buttons also perform native Windows actions; assigning or disabling an action here does not necessarily suppress those actions. Mute remains native; Home has dedicated BrowserHome handling. Do not run two input handlers simultaneously.
+Назначить можно только событие, которое действительно получает Windows. Кнопку без поддерживаемого Bluetooth-события добавить нельзя. Некоторые кнопки одновременно выполняют штатное действие Windows: назначение или отключение действия здесь не обязательно отменяет штатное. Mute остаётся нативным; Home имеет отдельную обработку BrowserHome. Не запускайте два обработчика одновременно.
 
-## Pair and identify your remote
+## Home при выключенном экране и ограничения
 
-1. Pair the remote through Windows Bluetooth settings. RC-G2 units commonly enter pairing mode by holding Back + Home until the green indicator flashes quickly.
-2. In Device Manager, inspect the paired remote's **Details → Device instance path**. Find its Bluetooth address: twelve hexadecimal digits, without separators. PowerShell can help list Bluetooth instances:
+После уведомлений Windows о выключении и включении экрана необработанный BrowserHome может однократно выполнить сохранённое действие Home в коротком интервале пробуждения. Обработка не требует исходного WM_INPUT, который подавляет клавиатурный перехватчик. Consumer-коллекция выбранного пульта должна присутствовать. Повторные целевые Home подавляются две секунды после этой обработки; быстрое второе нажатие Home также может быть проигнорировано.
+
+**Это компромисс, не определение устройства:** BrowserHome обычной клавиатуры в том же интервале пробуждения тоже может выполнить сохранённое действие Home. При уже включённом экране необработанный BrowserHome воспроизводится штатно. Не используйте эту обработку, если такой риск для обычной клавиатуры неприемлем. Выключение экрана не означает сон компьютера или Wake-on-LAN.
+
+Громкость, стрелки и перемотка при тёмном экране остаются нерешёнными. Обработка Home не доказывает работу этих кнопок и удерживания с выключенным экраном. Пауза и перемотка также зависят от горячих клавиш выбранного приложения. Физическую реакцию кнопок проверяйте отдельно после установки: журналы отправки и автоматические тесты её не подтверждают.
+
+![Текущее окно настроек на английском](docs/images/settings-en.png)
+
+## Сопряжение и выбор устройства
+
+1. Подключите пульт через Bluetooth-настройки Windows. У RC-G2 режим сопряжения обычно включается удерживанием Back + Home до быстрого зелёного мигания.
+2. В Диспетчере устройств откройте свойства сопряжённого пульта: **Сведения → Путь к экземпляру устройства**. Найдите его Bluetooth-адрес — двенадцать шестнадцатеричных цифр без разделителей. Список Bluetooth-экземпляров можно посмотреть в PowerShell:
 
    ```powershell
    Get-PnpDevice -Class Bluetooth | Select-Object FriendlyName, InstanceId
    ```
 
-   Select the address belonging to your remote, not the Bluetooth adapter or another device. The address must also appear in the remote's HID Raw Input device path; if your unit uses a different identifier/report layout, source adaptation may be necessary.
-3. Store the address as a **user** environment variable. Replace the placeholder with your own address; do not use the placeholder literally:
+   Выберите адрес пульта, не адаптера и не другого устройства. Адрес должен присутствовать и в HID Raw Input-пути пульта; для устройства с другим идентификатором или форматом пакетов может потребоваться изменение исходников.
+3. Запишите адрес в переменную среды **текущего пользователя**, заменив пример своим значением. Не используйте строку-заглушку буквально:
 
    ```powershell
    $address = '<12 hexadecimal digits from your remote>'
@@ -34,144 +44,153 @@ Support is limited to events Windows actually receives. A button that sends no s
    $env:ROCKTEK_REMOTE_DEVICE = $address
    ```
 
-   Restart the application after changes. Sign out/in if applications launched from the Start menu still inherit the old environment. An absent or invalid address fails closed: no device is remapped. The editor remains available and shows a setup warning.
+   После изменения перезапустите программу. Если запуск из меню Пуск получает прежнюю среду, выйдите из Windows и войдите снова. Без корректного адреса обработка запрещена: программа не переназначает никакие устройства. Окно настроек доступно и показывает предупреждение.
 
-This device filter applies before decoding, learning and dispatch. Ordinary keyboards and other remotes are not recorded or remapped by the helper. Keep your address private when sharing logs or configuration examples. Existing button-settings JSON files do not need their mappings rewritten to select a device.
+Фильтр применяется до декодирования, обучения и выполнения действий. Обычные клавиатуры и чужие пульты исключены из декодирования, обучения и выполнения событий с идентификатором устройства. Описанный ниже BrowserHome при пробуждении — намеренное исключение. Не публикуйте личный адрес в журналах или примерах. Для выбора устройства не нужно переписывать назначения существующего JSON.
 
-## Install and configure
+## Установка и начало работы
 
-Download the ready-to-run files from the [latest release](https://github.com/vladido/rocktek-remote/releases/latest). No compiler or source checkout is needed.
+Скачайте готовые файлы из [последнего выпуска](https://github.com/vladido/rocktek-remote/releases/tag/v1.0.1).
 
-- **Installer:** download `RockTekRemoteSetup.exe` and follow the steps below.
-- **Portable:** download `RockTekRemote-portable.zip`, extract it to a folder you control and run `RockTekRemote.exe`. It does not install shortcuts or autostart entries; stop any other handler before launching it. Configure the remote and settings as described below.
-- `SHA256SUMS` contains SHA-256 checksums for the application, installer and portable ZIP.
+- **Установщик:** скачайте `RockTekRemoteSetup.exe` и следуйте шагам ниже.
+- **Переносимая версия:** скачайте `RockTekRemote-portable.zip`, распакуйте в доступную вам папку и запустите `RockTekRemote.exe`. Она не создаёт ярлыки и записи автозапуска; перед запуском остановите другой обработчик. Устройство и назначения настройте по инструкции ниже.
+- **Исходники:** `RockTekRemote-source.zip` содержит полный набор исходников, тесты и текущие снимки окна.
+- `SHA256SUMS` содержит контрольные суммы SHA-256 приложения, установщика и переносимого ZIP.
 
-1. Run the downloaded `RockTekRemoteSetup.exe` as your ordinary user.
-2. Setup installs the application under `%LOCALAPPDATA%\Programs\RockTekRemote`, adds a Start menu settings shortcut, an HKCU Windows Apps uninstall entry and an HKCU Run autostart entry.
-3. Setup does not start the handler immediately. Launch the installed `RockTekRemote.exe` to start now, or sign in again. Stop any previous portable handler and disable its autostart yourself before starting this version.
-4. Open settings from Start or the tray. For Home choose **Open application** and select its EXE. For each application-restricted button choose **Only in selected application** and select that button's scope EXE. Opening and scope EXEs are independent.
-5. Edit a button and click **Save**. Fresh defaults have no selected applications; the first valid Save creates the JSON. The editor will not guess a player or silently turn a restricted button into a global one.
+1. Запустите скачанный `RockTekRemoteSetup.exe` от обычного пользователя.
+2. Программа устанавливается в `%LOCALAPPDATA%\Programs\RockTekRemote`, создаёт ярлык настроек в меню Пуск, запись удаления в HKCU для списка приложений Windows и автозапуск HKCU Run.
+3. Установщик не запускает обработчик сразу. Откройте установленный `RockTekRemote.exe` для запуска сейчас либо войдите в Windows заново. Предыдущий переносимый обработчик остановите и отключите его автозапуск самостоятельно до запуска этой версии.
+4. Откройте настройки из меню Пуск или трея. Для Home выберите **Открыть приложение** и его EXE. Для каждой ограниченной кнопки выберите **Только в выбранном приложении** и укажите EXE её области. Путь открываемого приложения и путь области независимы.
+5. Настройте кнопку и нажмите **Сохранить**. В новых стандартных настройках приложения не выбраны; первый корректный Save создаёт JSON. Программа не угадывает плеер и не заменяет ограниченную область глобальной.
 
-The language selector changes display text only, not paths, key tokens, learned names or assignments. Language and theme are session-local. Launch with `--language ru` to start the application, settings editor or installer in Russian; `--language en` selects English. Existing versioned settings and older path-only settings remain readable.
+Выбор языка меняет только отображаемый текст, не пути, английские токены клавиш, имена добавленных кнопок или назначения. Язык и тема действуют в текущем сеансе. `--language ru` запускает обработчик, редактор или установщик на русском; `--language en` — на английском. Старые версионные и path-only настройки продолжают читаться.
 
-## Actions
+## Действия
 
-### Key / shortcut
+### Клавиша / сочетание
 
-Enter a key such as `Space`, `Enter` or `Ctrl+Right`, or click **Record shortcut** and press a key with optional Ctrl, Alt and Shift. Modifier-only presses keep waiting. Esc, Cancel, focus loss or closing restores the prior value. Tab and Alt+F4 are consumed while recording. Recording uses the opted-in active settings window, not an additional global keyboard hook.
+Введите `Space`, `Enter`, `Ctrl+Right` либо нажмите **Записать сочетание** и клавишу с необязательными Ctrl, Alt, Shift. Нажатие только модификатора оставляет ожидание. Esc, Отмена, потеря фокуса и закрытие возвращают прежнее значение. Tab и Alt+F4 во время записи не выполняют команды окна. Используются события активного окна после явного включения записи, а не дополнительный глобальный перехватчик клавиатуры.
 
-Manual keys include English letters/digits, arrows, Home/End, PageUp/PageDown, Insert/Delete, F1–F24 and supported media/volume keys. Ctrl, Shift, Alt and Win modifiers cannot be duplicated. Enter Win shortcuts and Escape manually; Windows-reserved shortcuts are not universally capturable. Save is required to persist recording.
+Ручной ввод поддерживает латинские буквы/цифры, стрелки, Home/End, PageUp/PageDown, Insert/Delete, F1–F24 и поддерживаемые медиа/громкостные клавиши. Модификаторы Ctrl, Shift, Alt, Win нельзя дублировать. Win-сочетания и Escape вводите вручную: системные сочетания не всегда доступны для записи. Для сохранения результата нужен **Сохранить**.
 
-### Open application
+### Открыть приложение
 
-Select a local `.exe`. A visible window in the current session with the exact executable path is restored/focused; if none exists, the executable is launched. Failed foreground activation does not cause a duplicate launch.
+Выберите локальный `.exe`. Если в текущем сеансе есть видимое окно с точным путём этого EXE, оно восстанавливается и активируется; иначе приложение запускается. Отказ Windows перевести окно на передний план не создаёт второй запуск.
 
-**Additional launch options** exposes arguments and an optional working directory. Collapsing the section preserves values. These options apply only to new launches. Arguments are passed verbatim; supply any required quoting. An empty working directory means the EXE's parent directory. Paths support environment variables and resolve relative to the settings JSON directory. The EXE and working directory must exist when executed. Launching does not use a command shell or implicit elevation. Network/device paths, drive-relative paths and reserved device names are rejected.
+**Дополнительные параметры запуска** раскрывают аргументы и необязательную рабочую папку. Сворачивание сохраняет значения. Они используются только при новом запуске. Аргументы передаются без изменения; необходимые кавычки задайте сами. Пустая рабочая папка означает папку EXE. Поддерживаются переменные среды и пути относительно папки JSON. Приложение и рабочая папка должны существовать при выполнении. Командная оболочка и автоматическое повышение прав не используются. Сетевые/служебные пути, пути вида `C:foo` и зарезервированные имена устройств запрещены.
 
-### Open file / folder / link
+### Открыть файл / папку / ссылку
 
-Open a local file/folder through its Windows association, or an HTTP/HTTPS URL in the browser. Executables, scripts, shortcuts and other URL schemes are refused here; use the explicit application action for EXEs. This is not a shell-command editor.
+Локальные файлы и папки открываются через штатную ассоциацию Windows, HTTP/HTTPS-ссылки — в браузере. Исполняемые файлы, сценарии, ярлыки и другие протоколы запрещены: EXE запускайте отдельным действием приложения. Это не редактор командной строки.
 
-### Mouse (current pointer)
+### Мышь (текущий курсор)
 
-Left click, right click, double click or wheel scrolling at the pointer's **current** position. Scroll amount is −100 to 100 notches, excluding zero; positive is up. There is no cursor movement or X/Y coordinate targeting. Check what is under the pointer before pressing a mapped button.
+Левый, правый или двойной щелчок либо колесо в **текущем** положении указателя. Прокрутка: от −100 до 100 делений, кроме нуля; положительное значение — вверх. Перемещения курсора и координат X/Y нет. Перед нажатием проверьте элемент под курсором.
 
-### Sequence
+### Последовательность
 
-Click **Edit steps…**, add/edit/reorder/remove steps, then **Done** and **Save**. Steps support keys, application opening, file/folder/link opening, mouse and waits. Limits: 1–32 steps, no nested sequences, each wait 0–10000 ms and total waits at most 60000 ms.
+Откройте **Редактировать шаги…**, добавьте, настройте, переставьте или удалите шаги, затем нажмите **Готово** и **Сохранить**. Поддерживаются клавиши, открытие приложений, файлов/папок/ссылок, мышь и ожидание. От 1 до 32 шагов, без вложенных последовательностей. Ожидание шага: 0–10000 мс; сумма ожиданий не более 60000 мс.
 
-A single cancellable worker executes steps in order; overlapping actions are refused, not queued. Reloading settings or exiting cancels remaining steps. Cancellation does not undo effects already performed. Waits are delays, not application-readiness checks. Keys use the current foreground window and mouse actions the current pointer. Restricted scopes are rechecked before every step.
+Один отменяемый фоновый исполнитель выполняет шаги по порядку; параллельные действия отклоняются, очередь не создаётся. Перечитывание настроек и выход отменяют оставшиеся шаги. Уже выполненные эффекты не откатываются. Ожидание — задержка, не проверка готовности приложения. Клавиши отправляются текущему активному окну, мышь действует под текущим указателем. Область ограниченной кнопки проверяется перед каждым шагом.
 
-**Disabled** affects only this application's output. **Native action** is reserved for Mute and sends no extra toggle.
+**Без действия** отключает только вывод этой программы. **Штатное действие** закреплено за Mute и не создаёт дополнительного переключения.
 
-## Scopes, holding and defaults
+## Область, удерживание и стандартные назначения
 
-Each button has its own scope. **Everywhere** permits the action regardless of the foreground application. **Only in selected application** requires a nonempty local scope EXE and matches the exact foreground executable path. A restricted button may open a different application, but only while its scope application is active.
+Область задаётся отдельно каждой кнопке. **Везде** разрешает действие независимо от активного приложения. **Только в выбранном приложении** требует непустой локальный EXE области и сравнивает точный путь активного процесса. Ограниченная кнопка может открывать другое приложение, но лишь пока активно приложение её области.
 
-Repeat is available only for Key actions, excluding Home, Back, OK and Mute. Delay: 100–5000 ms; interval: 50–2000 ms; defaults: 350/150. Repetition stops on the corresponding release or scope loss, with a 30-second lost-release safety cap. Other-source/wrong-key releases do not clear an unrelated hold.
+Повтор доступен только для клавиш, кроме Home, Back, OK и Mute. Задержка: 100–5000 мс, интервал: 50–2000 мс; стандартно 350/150. Повтор прекращается при соответствующем отпускании или смене области; защитный предел потерянного отпускания — 30 секунд. Отпускание другой клавиши/источника не сбрасывает чужое удерживание.
 
-| Button | Default output | Scope | Repeat |
+| Кнопка | Стандартный вывод | Область | Повтор |
 |---|---|---|---|
-| Home | Open/focus selected application | Everywhere | No |
-| Back | Escape | Selected application | No |
-| OK | Space | Selected application | No |
-| Up / Down | Up / Down | Selected application | Yes |
-| Left / Right | Left / Right | Selected application | Yes |
-| CH+ / CH− | VolumeUp / VolumeDown | Everywhere | Yes |
-| Mute | Native Windows mute | Native | No |
+| Home | Открыть/показать выбранное приложение | Везде | Нет |
+| Back | Escape | Выбранное приложение | Нет |
+| OK | Space | Выбранное приложение | Нет |
+| Up / Down | Up / Down | Выбранное приложение | Да |
+| Left / Right | Left / Right | Выбранное приложение | Да |
+| CH+ / CH− | VolumeUp / VolumeDown | Везде | Да |
+| Mute | Штатное отключение звука Windows | Нативно | Нет |
 
-These are keys, not universal playback or seek commands. Configure shortcuts for your application. Standard Consumer usages are Home `0x0223`, Back `0x0224`, OK `0x0041`, Up/Down `0x0042`/`0x0043`, Left/Right `0x0044`/`0x0045`, CH+/CH− `0x009C`/`0x009D`, Mute `0x00E2`. Different remote firmware may report different codes; learning cannot manufacture missing Bluetooth events.
+Это клавиши, а не универсальные команды паузы или перемотки. Настройте сочетания своей программы. Стандартные Consumer-коды: Home `0x0223`, Back `0x0224`, OK `0x0041`, Up/Down `0x0042`/`0x0043`, Left/Right `0x0044`/`0x0045`, CH+/CH− `0x009C`/`0x009D`, Mute `0x00E2`. Другая прошивка может выдавать другие коды; обучение не создаёт отсутствующих Bluetooth-событий.
 
-## Learn another button
+## Добавление новой кнопки
 
-Click **Add button**, then press one remote button within 30 seconds. A known source + code selects its existing entry without duplication. For a new event, enter the physical button's name, choose an action and Save. New buttons start Disabled. **Remove button** removes only custom entries and also requires Save.
+Нажмите **Добавить кнопку** и одну кнопку пульта в течение 30 секунд. Известная пара источник + код выбирает существующую запись без дубля. Для нового события введите физическое имя, выберите действие и сохраните. Новые кнопки изначально без действия. **Удалить кнопку** доступно только для добавленных записей и также требует сохранения.
 
-The input row shows source and hexadecimal code, with keyboard key/scan metadata available in diagnostics. A reported F2 is a signal name, not necessarily the printed button label. Learning distinguishes Consumer and Keyboard sources and temporarily pauses the handler; confirmation, cancel, timeout or closing releases that pause. Up to 256 total buttons are allowed; custom names are unique, 1–48 characters without control characters.
+Строка входа показывает источник и шестнадцатеричный код; имя клавиши и scan-метаданные доступны в диагностике. F2 — имя сигнала, не обязательно надпись на пульте. Consumer и Keyboard различаются. Во время обучения обработчик приостанавливается; подтверждение, отмена, таймаут или закрытие освобождают блокировку. Максимум 256 кнопок; пользовательские имена уникальны, 1–48 символов без управляющих знаков.
 
-## Settings and compatibility
+## Настройки и совместимость
 
-Runtime, editor and manual editing use one version-4 JSON with `Version` and `Buttons`. Each button stores `InputType`, `Usage`, `ScanCode`, `ScanFlags`, `Action`, `Key`, `Scope`, `ScopeApplicationPath`, `Repeat`, `Delay` and `Interval`. Actions additionally use `ApplicationPath`, `Arguments`, `WorkingDirectory`, `Target`, `MouseAction`, `ScrollAmount` or `Steps`; wait steps use `WaitMilliseconds`.
+Обработчик, окно и ручное редактирование используют один JSON версии 4 с `Version` и `Buttons`. У каждой кнопки: `InputType`, `Usage`, `ScanCode`, `ScanFlags`, `Action`, `Key`, `Scope`, `ScopeApplicationPath`, `Repeat`, `Delay`, `Interval`. Дополнительные поля действий: `ApplicationPath`, `Arguments`, `WorkingDirectory`, `Target`, `MouseAction`, `ScrollAmount`, `Steps`; у ожидания — `WaitMilliseconds`.
 
-Action tokens are `Key`, `LaunchApplication`, `OpenTarget`, `Mouse`, `Sequence`, `Wait` (steps only), `Disabled` and `Native`. Legacy `OpenTargetApplication` remains an application-opening alias. Older path-only `MurglarPath` files and versions 2/3/4 migrate without discarding existing paths, assignments, input identity or hold timing. Missing legacy per-button scope paths inherit the old global application path; explicit existing paths are not overwritten. New saves omit the legacy global application field. Empty restricted scope paths must be repaired before Save.
+Токены: `Key`, `LaunchApplication`, `OpenTarget`, `Mouse`, `Sequence`, `Wait` (только шаг), `Disabled`, `Native`. Старый `OpenTargetApplication` остаётся синонимом открытия приложения. Старые path-only файлы с `MurglarPath` и версии 2/3/4 мигрируют с сохранением путей, назначений, источника/кода и параметров удерживания. Отсутствующие старые пути области получают прежний глобальный путь приложения; явно заданные новые пути не перезаписываются. Новые сохранения не содержат старого глобального поля. Пустые ограниченные EXE необходимо исправить до сохранения.
 
-Save validates before atomic replacement. Invalid edits preserve the previous file. Runtime reloads changes approximately once per second and retains the last valid configuration after a bad edit; initial invalid loads use defaults without overwriting the source. **Reset** changes the editor in memory; **Import** loads a validated file; both require Save. **Export** writes a separate copy. Import/export/relocation preserve settings-relative path meaning.
+Save валидирует и атомарно заменяет файл. Ошибка сохраняет прежние байты. Обработчик перечитывает JSON примерно раз в секунду и после плохой правки оставляет последнюю корректную конфигурацию; при первом неправильном чтении использует стандартные значения без перезаписи файла. **Сбросить** меняет окно в памяти; **Импорт** загружает корректный файл; после обоих нужен Save. **Экспорт** пишет отдельную копию. Импорт, экспорт и перенос сохраняют смысл относительных путей.
 
-### Primary file location
+### Основной файл
 
-Default discovery uses `%OneDriveConsumer%\RockTekRemote\settings.json`, then `%OneDrive%\RockTekRemote\settings.json`, an existing `%USERPROFILE%\OneDrive` if those variables are absent, or `%LOCALAPPDATA%\RockTekRemote\settings.json` otherwise.
+Поиск по умолчанию: `%OneDriveConsumer%\RockTekRemote\settings.json`, затем `%OneDrive%\RockTekRemote\settings.json`, существующий `%USERPROFILE%\OneDrive`, если переменных нет, либо `%LOCALAPPDATA%\RockTekRemote\settings.json`.
 
-**Change…** loads an existing JSON without overwriting it or creates a new file from current settings after confirmation. New files are written before the primary locator is committed. **Default** restores default discovery after confirmation. `%LOCALAPPDATA%\RockTekRemote\config-location.json` contains only the selected path, not mappings. Runtime follows changes; a stale editor refuses to save over another window's selection. Invalid locators block Save until repaired. Settings and locator survive uninstall.
+**Изменить…** загружает существующий JSON без перезаписи или создаёт новый из текущих настроек после подтверждения. Новый файл записывается до фиксации указателя. **По умолчанию** возвращает стандартный поиск после подтверждения. `%LOCALAPPDATA%\RockTekRemote\config-location.json` содержит только путь, не назначения. Обработчик следует изменениям; старое окно отказывается сохранять после выбора другого файла в другом окне. Плохой указатель блокирует Save до исправления. Настройки и указатель сохраняются при удалении.
 
-`--config <file>` bypasses the locator and disables primary-selection controls. To inspect settings without installing input hooks:
+`--config <файл>` обходит указатель и отключает выбор основного файла. Просмотр без установки input hooks:
 
 ```powershell
 .\dist\RockTekRemote.exe --settings-only --config 'C:\YourFolder\settings.json'
 .\dist\RockTekRemote.exe --preview --language ru --config 'C:\YourFolder\settings.json'
 ```
 
-The editor uses DPI-aware fitting and scrollable content with fixed Save/status controls; it does not change Windows display settings.
+Окно учитывает DPI и рабочую область монитора; содержимое прокручивается, Save/статус остаются на месте. Настройки дисплея Windows не меняются.
 
-## Backup, diagnostics and removal
+## Резервная копия, диагностика и удаление
 
-Back up your JSON, sources and installer. After reinstalling Windows, pair the remote again, configure the user device environment variable, reinstall and reselect your JSON. The local primary-file locator is not automatically synced. `restore.ps1` runs `dist\RockTekRemoteSetup.exe` silently and verifies the installed EXE; supply `-SetupPath` for a different installer location. It creates no extra startup task.
+Сохраните JSON, исходники и установщик. После переустановки Windows снова подключите пульт, задайте пользовательскую переменную устройства, установите программу и выберите свой JSON. Локальный указатель автоматически не синхронизируется. `restore.ps1` запускает `dist\RockTekRemoteSetup.exe` без диалога и проверяет установленный EXE; другой путь задаётся через `-SetupPath`. Дополнительная задача автозапуска не создаётся.
 
-Logs/state are `%LOCALAPPDATA%\RockTekRemote\actions.log` and `state.json`. Logs are capped; successful dispatch does not prove the target application responded. Check the selected address, process path, foreground scope and application shortcuts when diagnosing a button. Exit from the tray stops handling until the next launch/sign-in.
+Журнал и состояние: `%LOCALAPPDATA%\RockTekRemote\actions.log` и `state.json`. Размер журналов ограничен; запись об отправке не доказывает реакцию приложения. Для диагностики проверьте адрес, путь процесса, активную область и горячие клавиши приложения. Выход из трея прекращает обработку до следующего запуска/входа.
 
-Remove through Windows Settings → Apps → RockTek Remote, or run the installed EXE with `--uninstall` (`--silent` suppresses confirmation). Removal targets the owned EXE, shortcut and current-user registry entries, not selected applications, pairing, settings, locator, backups or unknown files. The user device environment variable is retained; remove it yourself if no longer needed.
+Удаление: Параметры Windows → Приложения → RockTek Remote либо установленный EXE с `--uninstall` (`--silent` отключает подтверждение). Удаляются только принадлежащие установке EXE, ярлык и записи текущего пользователя. Приложения, сопряжение, настройки, указатель, резервные копии и неизвестные файлы сохраняются. Переменная устройства также остаётся: удалите её самостоятельно, если больше не нужна.
 
-## Developer information
+## Для разработчиков
 
-### Build on Windows
+### Сборка в Windows
 
-From the repository on 64-bit Windows:
+В папке исходников на 64-битной Windows:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
 ```
 
-The script uses `%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe` and produces:
+Используется компилятор `%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe`. Результат:
 
-- `dist\RockTekRemote.exe` — application and settings editor.
-- `dist\RockTekRemoteSetup.exe` — installer with that exact application embedded.
+- `dist\RockTekRemote.exe` — обработчик и окно настроек.
+- `dist\RockTekRemoteSetup.exe` — установщик со встроенной точной копией собранного приложения.
 
-Use `-OutputDirectory <folder>` to choose another output location. Icons and all source files needed for both executables are included. Generated executables, settings, logs and capture files are not part of the source distribution. No third-party NuGet dependencies are required.
+Другую папку можно указать через `-OutputDirectory <папка>`. Все необходимые исходники и значки включены. Сгенерированные EXE, настройки, журналы и снимки не входят в исходный комплект. Зависимостей NuGet нет.
 
-### Build on Linux
+### Регрессионные тесты Windows
 
-With Mono's C# compiler, Windows Forms, Drawing and Web Extensions framework assemblies, plus `zip`, available:
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test.ps1
+```
+
+Запускайте после `build.ps1`. Набор проверяет назначения, удерживание, конфигурацию, native-границы ввода, Home при пробуждении с подставным OS-адаптером, редактор, локализацию, выбор устройства и установку/удаление в песочнице. Проверки безопасности отклоняют перенаправленные пути и маркеры владения. Тесты не устанавливают и не заменяют рабочий обработчик пользователя, не меняют рабочие задачи автозапуска и не подтверждают физическую реакцию медиа-кнопок.
+
+### Сборка в Linux
+
+Нужны компилятор C# Mono, сборки Windows Forms, Drawing и Web Extensions, а также `zip`:
 
 ```bash
 bash ./build.sh
 ```
 
-This compiles the same source lists and embedded resources as `build.ps1` and writes `RockTekRemote.exe`, `RockTekRemoteSetup.exe`, `RockTekRemote-portable.zip` and `SHA256SUMS` to ignored `dist/`. The installer embeds the newly compiled application; the portable ZIP contains only that application. These are Windows executables, not a Linux application.
+Сценарий использует те же списки исходников и встроенные ресурсы, что и `build.ps1`, и записывает `RockTekRemote.exe`, `RockTekRemoteSetup.exe`, `RockTekRemote-portable.zip` и `SHA256SUMS` в игнорируемую папку `dist/`. Установщик содержит только что собранное приложение, переносимый ZIP — только приложение. Полученные EXE предназначены для Windows, не для запуска в Linux.
 
-## Source layout
+## Исходники
 
-- `RockTekRemote.cs`, `ConsumerInput.cs`, `DeviceFilter.cs`: filtered Windows input, runtime, tray and device selection.
-- `RemoteConfig.cs`, `ActionModel.cs`, `ConfigLocation.cs`, `FileSafety.cs`: validation, migration, persistence and path safety.
-- `ActionExecutor.cs`, `RemoteMapping.cs`, `HoldRepeater.cs`: cancellable execution, defaults and holds.
-- `SettingsForm.cs`, `ActionEditor.cs`, `UiText.cs`, `WindowLayout.cs`, `AppIcon.cs`: bilingual editor, sequence UI, DPI layout and icons.
-- `Installation.cs`, `Setup.cs`, `build.ps1`, `build.sh`, `restore.ps1`: per-user packaging and recovery.
+- `RockTekRemote.cs`, `ConsumerInput.cs`, `DeviceFilter.cs`: фильтрация, обработчик, трей и выбор устройства.
+- `RemoteConfig.cs`, `ActionModel.cs`, `ConfigLocation.cs`, `FileSafety.cs`: валидация, миграция, хранение и безопасность путей.
+- `ActionExecutor.cs`, `RemoteMapping.cs`, `HoldRepeater.cs`: отменяемое исполнение, стандартные назначения и удерживание.
+- `SettingsForm.cs`, `ActionEditor.cs`, `UiText.cs`, `WindowLayout.cs`, `AppIcon.cs`: двухъязычный редактор, шаги, DPI и значки.
+- `Installation.cs`, `Setup.cs`, `build.ps1`, `build.sh`, `restore.ps1`: упаковка и восстановление для текущего пользователя.
 
 
