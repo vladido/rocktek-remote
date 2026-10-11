@@ -23,7 +23,7 @@ jobs:
           fi
           "${apt_command[@]}" update
           "${apt_command[@]}" install -y --no-install-recommends \
-            mono-mcs libmono-system-windows-forms4.0-cil \
+            mono-devel libmono-system-windows-forms4.0-cil \
             libmono-system-drawing4.0-cil libmono-system-web-extensions4.0-cil zip
       - name: Compile and package
         shell: bash

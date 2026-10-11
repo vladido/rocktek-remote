@@ -189,6 +189,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test.ps1
 bash ./build.sh
 ```
 
+Для Linux установите пакет `mono-devel` с эталонными сборками .NET Framework 4.5. `build.sh` использует `mcs -sdk:4.5`; отсутствие этого SDK прерывает сборку, а не подменяет Windows API библиотеками текущего Mono.
+
 Сценарий использует те же списки исходников и встроенные ресурсы, что и `build.ps1`, и записывает `RockTekRemote.exe`, `RockTekRemoteSetup.exe`, `RockTekRemote-portable.zip` и `SHA256SUMS` в игнорируемую папку `dist/`. Установщик содержит только что собранное приложение, переносимый ZIP — только приложение. Полученные EXE предназначены для Windows, не для запуска в Linux.
 
 ## Исходники

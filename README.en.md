@@ -189,6 +189,8 @@ With Mono's C# compiler, Windows Forms, Drawing and Web Extensions framework ass
 bash ./build.sh
 ```
 
+On Linux, install `mono-devel` with the .NET Framework 4.5 reference assemblies. `build.sh` uses `mcs -sdk:4.5`; a missing SDK aborts the build rather than substituting the current Mono runtime API.
+
 This compiles the same source lists and embedded resources as `build.ps1` and writes `RockTekRemote.exe`, `RockTekRemoteSetup.exe`, `RockTekRemote-portable.zip` and `SHA256SUMS` to ignored `dist/`. The installer embeds the newly compiled application; the portable ZIP contains only that application. These are Windows executables, not a Linux application.
 
 ## Source layout

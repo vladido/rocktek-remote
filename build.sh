@@ -19,7 +19,7 @@ setup_sources=(
     AppIcon.cs ActionEditor.cs SettingsForm.cs
 )
 compiler_options=(
-    -nologo -target:winexe -platform:x64 -optimize+
+    -nologo -sdk:4.5 -warnaserror:8001 -target:winexe -platform:x64 -optimize+
     -win32icon:assets/app-icon.ico
     -resource:assets/app-icon.ico,app-icon.ico
     -r:System.Windows.Forms.dll -r:System.Drawing.dll -r:System.Web.Extensions.dll
