@@ -24,7 +24,7 @@ jobs:
           "${apt_command[@]}" update
           "${apt_command[@]}" install -y --no-install-recommends \
             mono-devel libmono-system-windows-forms4.0-cil \
-            libmono-system-drawing4.0-cil libmono-system-web-extensions4.0-cil zip
+            libmono-system-drawing4.0-cil libmono-system-web-extensions4.0-cil python3 zip
       - name: Compile and package
         shell: bash
         run: bash ./build.sh

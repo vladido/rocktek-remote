@@ -2,7 +2,7 @@
 set -euo pipefail
 
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
-for tool in mcs zip sha256sum; do
+for tool in mcs python3 zip sha256sum; do
     command -v "$tool" >/dev/null || { printf 'Required tool not found: %s\n' "$tool" >&2; exit 1; }
 done
 
@@ -20,12 +20,13 @@ setup_sources=(
 )
 compiler_options=(
     -nologo -sdk:4.5 -warnaserror:8001 -target:winexe -platform:x64 -optimize+
-    -win32icon:assets/app-icon.ico
+    -win32res:dist/app-native.res
     -resource:assets/app-icon.ico,app-icon.ico
     -r:System.Windows.Forms.dll -r:System.Drawing.dll -r:System.Web.Extensions.dll
 )
 
 mkdir -p dist
+python3 build-win32-resources.py assets/app-icon.ico assets/app.manifest dist/app-native.res
 mcs "${compiler_options[@]}" -out:dist/RockTekRemote.exe "${app_sources[@]}"
 mcs "${compiler_options[@]}" -out:dist/RockTekRemoteSetup.exe \
     -resource:dist/RockTekRemote.exe,RockTekRemote.exe "${setup_sources[@]}"
