@@ -43,5 +43,14 @@ if($LASTEXITCODE){throw 'Wake Home test compile failed'}
 & $csc /nologo /platform:x64 /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:System.Web.Extensions.dll /r:$app /out:"$testOutput\NativeWakeRegressionTests.exe" "$PSScriptRoot\NativeWakeRegressionTests.cs"
 if($LASTEXITCODE){throw 'Native wake regression compile failed'}
 & "$testOutput\NativeWakeRegressionTests.exe";if($LASTEXITCODE){throw 'Native wake regression failed'}
+foreach($name in @('HidTransport','Foreground','WindowKey')) {
+ & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot ($name+'Tests.ps1')) -Assembly $app
+ if($LASTEXITCODE){throw ($name+' regression failed')}
+}
+foreach($name in @('HidRuntime','ScopedWindow')) {
+ & $csc /nologo /platform:x64 /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:System.Web.Extensions.dll /r:$app ('/out:'+ $testOutput+'\'+$name+'Tests.exe') (Join-Path $PSScriptRoot ($name+'Tests.cs'))
+ if($LASTEXITCODE){throw ($name+' compile failed')}
+ & (Join-Path $testOutput ($name+'Tests.exe'));if($LASTEXITCODE){throw ($name+' regression failed')}
+}
 & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\SafetyTests.ps1" -Assembly $app;if($LASTEXITCODE){throw "Safety tests failed"}
 & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\InstallTests.ps1" -Stage $PSScriptRoot;if($LASTEXITCODE){throw "Install tests failed"}

@@ -22,7 +22,13 @@ When Windows reports display-off and then display-on, an unmatched BrowserHome k
 
 **This is a compromise, not device attribution:** a normal keyboard BrowserHome press in the same display-wake interval can also invoke the saved Home action. Screen-on unmatched BrowserHome is replayed normally. Do not use this fallback where that keyboard-wake risk is unacceptable. Display-off is not system sleep or Wake-on-LAN.
 
-Volume and seek/arrow behavior while the display is dark remain unresolved. Home handling does not establish that these buttons or their hold repetition work with a dark display. Playback and seeking also depend on the target application's shortcuts. Verify physical button effects separately after installing a build; dispatch logs and automated tests do not establish those effects.
+Display-off control uses a direct nonexclusive read of the selected remote's Consumer HID collection only. Keyboard Raw Input remains available; ordinary Consumer Raw Input is the fallback when the direct reader is unavailable. One primary Consumer transport prevents duplicate action dispatch.
+
+With the display off, unmodified keys assigned to **Only in selected application** are delivered as window messages directly to that application's active window, without system `SendInput`. Exact-image-path and foreground-scope checks remain in place. This does not wake the display, disable Modern Standby or create a permanent keep-awake request. Normal keyboard injection is retained while the display is on.
+
+Murglar supports the verified display-off path for `Space` pause/resume, `Left`/`Right` seeking, hold repetition and stopping on release. CH+/CH− control system volume; native Mute is retained. Home wakes the display and shows the selected application; transient foreground refusals are retried for a bounded interval without launching a duplicate instance.
+
+**Limitations:** display-off window delivery supports unmodified keyboard keys only, not Ctrl/Alt/Shift/Win combinations or media key codes. Unsupported combinations and delivery failures are logged rather than falling back to waking `SendInput`. Other applications may ignore window messages. Global keyboard actions, mouse actions and other action types do not have this dark-display guarantee. Verify your selected application's behavior after installation. Authentication screens and manual Windows locking are not bypassed; the application does not change power, lock or Bluetooth settings.
 
 ![Current English settings editor](docs/images/settings-en.png)
 
@@ -50,7 +56,7 @@ This device filter applies before decoding, learning and dispatch. Ordinary keyb
 
 ## Install and configure
 
-Download the ready-to-run files from the [latest release](https://github.com/vladido/rocktek-remote/releases/tag/v1.0.1).
+Download the ready-to-run files from the [latest release](https://github.com/vladido/rocktek-remote/releases/tag/v1.0.2).
 
 - **Installer:** download `RockTekRemoteSetup.exe` and follow the steps below.
 - **Portable:** download `RockTekRemote-portable.zip`, extract it to a folder you control and run `RockTekRemote.exe`. It does not install shortcuts or autostart entries; stop any other handler before launching it. Configure the remote and settings as described below.
@@ -187,7 +193,7 @@ This compiles the same source lists and embedded resources as `build.ps1` and wr
 
 ## Source layout
 
-- `RockTekRemote.cs`, `ConsumerInput.cs`, `DeviceFilter.cs`: filtered Windows input, runtime, tray and device selection.
+- `RockTekRemote.cs`, `HidConsumerReader.cs`, `ConsumerInput.cs`, `DeviceFilter.cs`: filtered Windows input, runtime, tray and device selection.
 - `RemoteConfig.cs`, `ActionModel.cs`, `ConfigLocation.cs`, `FileSafety.cs`: validation, migration, persistence and path safety.
 - `ActionExecutor.cs`, `RemoteMapping.cs`, `HoldRepeater.cs`: cancellable execution, defaults and holds.
 - `SettingsForm.cs`, `ActionEditor.cs`, `UiText.cs`, `WindowLayout.cs`, `AppIcon.cs`: bilingual editor, sequence UI, DPI layout and icons.

@@ -8,7 +8,7 @@ done
 
 # Keep these source lists and resources in sync with build.ps1.
 app_sources=(
-    RockTekRemote.cs InputDiagnostics.cs ActionExecutor.cs RemoteMapping.cs HoldRepeater.cs
+    RockTekRemote.cs HidConsumerReader.cs InputDiagnostics.cs ActionExecutor.cs RemoteMapping.cs HoldRepeater.cs
     RemoteConfig.cs ActionModel.cs AppIcon.cs ActionEditor.cs SettingsForm.cs
     Installation.cs FileSafety.cs ConsumerInput.cs ConfigLocation.cs
     WindowLayout.cs UiText.cs DeviceFilter.cs
