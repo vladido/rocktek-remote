@@ -6,6 +6,10 @@
 
 A per-user Windows application for mapping a RockTek RC-G2 Bluetooth remote to keyboard shortcuts, application opening, files and links, mouse clicks and action sequences. Includes a graphical editor, button learning, light/dark themes, a tray menu and a self-contained installer. The interface defaults to **English**; select **Русский** in the editor to use Russian.
 
+## Additional RC-G2 button catalog
+
+[Observed codes for 25 additional buttons](catalog/README.md) are available as a separate JSON fragment. All additional entries are disabled; existing assignments are preserved. Adding the entries to your primary JSON does not require reinstalling the application.
+
 ## Requirements and limitations
 
 - 64-bit Windows with .NET Framework 4.x and Windows PowerShell. Designed for Windows 11.
