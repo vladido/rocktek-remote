@@ -24,3 +24,8 @@ state.json
 .vs/
 .vscode/
 .idea/
+/native/.toolchain/
+/native/*.lib
+/native/runner-frozen.h
+/native/*.out
+/native/*.txt

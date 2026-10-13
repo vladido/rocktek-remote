@@ -1,6 +1,7 @@
 ﻿param([string]$Assembly="$PSScriptRoot\dist\RockTekRemote.exe")
 $ErrorActionPreference="Stop"
 $env:ROCKTEK_REMOTE_DEVICE="AABBCCDDEEFF"
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\NativeBackTests.ps1";if($LASTEXITCODE){throw "Native Back tests failed"}
 & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\DeviceSelectionTests.ps1" -Assembly $Assembly;if($LASTEXITCODE){throw "Device selection/localization tests failed"}
 $env:ROCKTEK_REMOTE_LANGUAGE="ru"
 $app=(Resolve-Path $Assembly).Path
@@ -43,6 +44,9 @@ if($LASTEXITCODE){throw 'Wake Home test compile failed'}
 & $csc /nologo /platform:x64 /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:System.Web.Extensions.dll /r:$app /out:"$testOutput\NativeWakeRegressionTests.exe" "$PSScriptRoot\NativeWakeRegressionTests.cs"
 if($LASTEXITCODE){throw 'Native wake regression compile failed'}
 & "$testOutput\NativeWakeRegressionTests.exe";if($LASTEXITCODE){throw 'Native wake regression failed'}
+& $csc /nologo /platform:x64 /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:System.Web.Extensions.dll /r:$app /out:"$testOutput\NativeBackRegressionTests.exe" "$PSScriptRoot\NativeBackRegressionTests.cs"
+if($LASTEXITCODE){throw 'Native Back regression compile failed'}
+& "$testOutput\NativeBackRegressionTests.exe";if($LASTEXITCODE){throw 'Native Back regression failed'}
 foreach($name in @('HidTransport','Foreground','WindowKey')) {
  & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot ($name+'Tests.ps1')) -Assembly $app
  if($LASTEXITCODE){throw ($name+' regression failed')}

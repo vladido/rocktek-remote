@@ -16,7 +16,7 @@ A per-user Windows application for mapping a RockTek RC-G2 Bluetooth remote to k
 - A paired RC-G2 remote whose input matches the supported Consumer HID reports (report ID `02`, five bytes) or Keyboard Raw Input packets.
 - The remote's Bluetooth address must be configured explicitly. No personal device address is built into the application.
 - Run as the normal interactive user. Windows can block input sent to elevated applications.
-- No service, custom driver, AutoHotkey or administrator installation is required. The executables are unsigned.
+- No custom driver or AutoHotkey is required. The machine-level Back component requires administrator installation. Executables are unsigned.
 
 Support is limited to events Windows actually receives. A button that sends no supported Bluetooth event cannot be assigned. Some buttons also perform native Windows actions; assigning or disabling an action here does not necessarily suppress those actions. Mute remains native; Home has dedicated BrowserHome handling. Do not run two input handlers simultaneously.
 
@@ -33,6 +33,16 @@ With the display off, unmodified keys assigned to **Only in selected application
 Murglar supports the verified display-off path for `Space` pause/resume, `Left`/`Right` seeking, hold repetition and stopping on release. CH+/CH− control system volume; native Mute is retained. Home wakes the display and shows the selected application; transient foreground refusals are retried for a bounded interval without launching a duplicate instance.
 
 **Limitations:** display-off window delivery supports unmodified keyboard keys only, not Ctrl/Alt/Shift/Win combinations or media key codes. Unsupported combinations and delivery failures are logged rather than falling back to waking `SendInput`. Other applications may ignore window messages. Global keyboard actions, mouse actions and other action types do not have this dark-display guarantee. Verify your selected application's behavior after installation. Authentication screens and manual Windows locking are not bypassed; the application does not change power, lock or Bluetooth settings.
+
+## Back without display wake
+
+Setup 2.1.0 installs `%ProgramData%\RockTekRemote\NativeBack` and the SYSTEM task `RockTekRemote-NativeBack`. Installing/removing this machine component requires administrator approval; the mapper remains a normal-user application.
+
+While direct target HID intake is active and Back has a custom action, the component intercepts hidserv's duplicate BrowserBack before delivery through `WinStationSendWindowMessage`. Consumer `0x0224` still executes its saved mapping; use `P` scoped to Murglar for previous track. The system `hidserv.dll` on disk is unchanged; Mute and all other native messages are forwarded.
+
+The hook remains active for the mapper's lifetime, not a one-minute window. A retained mapper process handle governs independent restoration of the original pointer and page protection on normal exit or process death, without standby-sensitive heartbeats. The SYSTEM task reconnects after mapper/service restarts. Updating/removing a loaded helper briefly restarts hidserv to release its resident DLL, preserving service startup mode.
+
+**Boundary:** the native service message has no source HID identity, so its BrowserBack filter is process-wide and may affect other Consumer remotes. Ordinary keyboard BrowserBack is not directly filtered by this component. Support is pinned to hidserv.dll 10.0.26100.4484, SHA-256 `92d5e4adc8e8128b17c74999df3ad882db5f10c4f27ea31fab55377b1303027a`; other builds fail closed without disabling other mapper functionality. The component log is `runner-phase.log` in its machine directory. A portable EXE without the machine component does not provide this fix.
 
 ![Current English settings editor](docs/images/settings-en.png)
 
@@ -60,7 +70,7 @@ This device filter applies before decoding, learning and dispatch. Ordinary keyb
 
 ## Install and configure
 
-Download the ready-to-run files from the [latest release](https://github.com/vladido/rocktek-remote/releases/tag/v1.0.2).
+Download the ready-to-run files from the [latest release](https://gitea.nkdb.ru/admin/rocktek-remote/releases/tag/v2.1.0).
 
 - **Installer:** download `RockTekRemoteSetup.exe` and follow the steps below.
 - **Portable:** download `RockTekRemote-portable.zip`, extract it to a folder you control and run `RockTekRemote.exe`. It does not install shortcuts or autostart entries; stop any other handler before launching it. Configure the remote and settings as described below.

@@ -10,11 +10,11 @@ done
 app_sources=(
     RockTekRemote.cs HidConsumerReader.cs InputDiagnostics.cs ActionExecutor.cs RemoteMapping.cs HoldRepeater.cs
     RemoteConfig.cs ActionModel.cs AppIcon.cs ActionEditor.cs SettingsForm.cs
-    Installation.cs FileSafety.cs ConsumerInput.cs ConfigLocation.cs
+    NativeBackSupport.cs Installation.cs FileSafety.cs ConsumerInput.cs ConfigLocation.cs
     WindowLayout.cs UiText.cs DeviceFilter.cs
 )
 setup_sources=(
-    Setup.cs Installation.cs FileSafety.cs ConsumerInput.cs ConfigLocation.cs
+    Setup.cs NativeBackSupport.cs Installation.cs FileSafety.cs ConsumerInput.cs ConfigLocation.cs
     WindowLayout.cs UiText.cs DeviceFilter.cs RemoteConfig.cs ActionModel.cs
     AppIcon.cs ActionEditor.cs SettingsForm.cs
 )
@@ -22,10 +22,12 @@ compiler_options=(
     -nologo -sdk:4.5 -warnaserror:8001 -target:winexe -platform:x64 -optimize+
     -win32res:dist/app-native.res
     -resource:assets/app-icon.ico,app-icon.ico
+    -resource:native/timedhook.dll,timedhook.dll -resource:native/service-runner.exe,service-runner.exe
     -r:System.Windows.Forms.dll -r:System.Drawing.dll -r:System.Web.Extensions.dll
 )
 
 mkdir -p dist
+python3 native/build.py
 python3 build-win32-resources.py assets/app-icon.ico assets/app.manifest dist/app-native.res
 mcs "${compiler_options[@]}" -out:dist/RockTekRemote.exe "${app_sources[@]}"
 mcs "${compiler_options[@]}" -out:dist/RockTekRemoteSetup.exe \
