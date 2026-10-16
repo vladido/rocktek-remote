@@ -4,7 +4,7 @@
 
 **[Полная документация на русском](README.md)**
 
-A per-user Windows application for mapping a RockTek RC-G2 Bluetooth remote to keyboard shortcuts, application opening, files and links, mouse clicks and action sequences. Includes a graphical editor, button learning, light/dark themes, a tray menu and a self-contained installer. The interface defaults to **English**; select **Русский** in the editor to use Russian.
+A per-user Windows application for mapping a RockTek RC-G2 Bluetooth remote to keyboard shortcuts, application opening, files and links, mouse clicks and action sequences. Includes a graphical editor, button learning, light/dark themes, a tray menu and a self-contained installer. On first launch the interface follows the Windows UI language: Russian for Russian Windows, English otherwise. Use **Язык / Language** in the editor to switch; the choice is saved for later launches.
 
 ## Additional RC-G2 button catalog
 
@@ -70,7 +70,7 @@ This device filter applies before decoding, learning and dispatch. Ordinary keyb
 
 ## Install and configure
 
-Download the ready-to-run files from the [latest release](https://gitea.nkdb.ru/admin/rocktek-remote/releases/tag/v2.1.0).
+Download the ready-to-run files from the [latest release](https://gitea.nkdb.ru/admin/rocktek-remote/releases/tag/v2.1.1).
 
 - **Installer:** download `RockTekRemoteSetup.exe` and follow the steps below.
 - **Portable:** download `RockTekRemote-portable.zip`, extract it to a folder you control and run `RockTekRemote.exe`. It does not install shortcuts or autostart entries; stop any other handler before launching it. Configure the remote and settings as described below.
@@ -83,7 +83,7 @@ Download the ready-to-run files from the [latest release](https://gitea.nkdb.ru/
 4. Open settings from Start or the tray. For Home choose **Open application** and select its EXE. For each application-restricted button choose **Only in selected application** and select that button's scope EXE. Opening and scope EXEs are independent.
 5. Edit a button and click **Save**. Fresh defaults have no selected applications; the first valid Save creates the JSON. The editor will not guess a player or silently turn a restricted button into a global one.
 
-The language selector changes display text only, not paths, key tokens, learned names or assignments. Language and theme are session-local. Launch with `--language ru` to start the application, settings editor or installer in Russian; `--language en` selects English. Existing versioned settings and older path-only settings remain readable.
+The language selector changes display text only, not paths, key tokens, learned names or assignments. Language is saved separately from mappings in `%LOCALAPPDATA%\RockTekRemote\ui-language.txt`; the theme is session-local. Launch with `--language ru` to start the application, settings editor or installer in Russian; `--language en` selects English. Existing versioned settings and older path-only settings remain readable.
 
 ## Actions
 

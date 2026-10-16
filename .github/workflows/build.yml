@@ -27,7 +27,9 @@ jobs:
             libmono-system-drawing4.0-cil libmono-system-web-extensions4.0-cil python3 zip
       - name: Compile and package
         shell: bash
-        run: bash ./build.sh
+        run: |
+          python3 ./test-icon-assets.py
+          bash ./build.sh
       - name: Upload release files
         uses: actions/upload-artifact@v3
         with:

@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-/// <summary>Session-local display language. Configuration tokens and user input are never translated.</summary>
+using System.IO;
+using System.Globalization;
+/// <summary>Display language is a per-user UI preference, separate from button mappings.</summary>
 public static class UiText {
  static string language="en";
+ static string preferenceFile=DefaultPreferenceFile;
+ public static string DefaultPreferenceFile {get{return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"RockTekRemote","ui-language.txt");}}
  public static string Language {get{return language;}set{if(value!="en"&&value!="ru")throw new ArgumentException("Language must be en or ru.");language=value;}}
  static readonly Dictionary<string,string> English=new Dictionary<string,string> {
   {"Укажите Bluetooth-адрес пульта в ROCKTEK_REMOTE_DEVICE (12 шестнадцатеричных символов), затем перезапустите программу.", "Set the remote Bluetooth address in ROCKTEK_REMOTE_DEVICE (12 hexadecimal characters), then restart the application."},
@@ -197,7 +201,19 @@ public static class UiText {
   {"Файл или папка не найдены.", "File or folder not found."},
  };
  public static string Get(string russian){string english;return language=="en"&&English.TryGetValue(russian,out english)?english:russian;}
- public static void Initialize(string[] args){for(int i=0;i<args.Length;i++)if(args[i]=="--language"){if(i+1>=args.Length)throw new ArgumentException("--language: specify en or ru.");Language=args[++i];}}
+ public static void Initialize(string[] args){Initialize(args,DefaultPreferenceFile);}
+ public static void Initialize(string[] args,string preferences){
+  preferenceFile=Path.GetFullPath(preferences);
+  Language=CultureInfo.CurrentUICulture.TwoLetterISOLanguageName=="ru"?"ru":"en";
+  try{FileSafety.CheckPath(preferenceFile);if(File.Exists(preferenceFile)&&new FileInfo(preferenceFile).Length<=16){string saved=File.ReadAllText(preferenceFile).Trim();if(saved=="ru"||saved=="en")Language=saved;}}catch(IOException){}catch(UnauthorizedAccessException){}
+  for(int i=0;i<args.Length;i++)if(args[i]=="--language"){if(i+1>=args.Length)throw new ArgumentException("--language: specify en or ru.");Language=args[++i];}
+ }
+ public static void SelectLanguage(string value){
+  if(value!="en"&&value!="ru")throw new ArgumentException("Language must be en or ru.");
+  FileSafety.CheckPath(preferenceFile);Directory.CreateDirectory(Path.GetDirectoryName(preferenceFile));
+  string temporary=preferenceFile+"."+Guid.NewGuid().ToString("N")+".new";
+  try{using(var output=new FileStream(temporary,FileMode.CreateNew,FileAccess.Write,FileShare.None))using(var writer=new StreamWriter(output))writer.Write(value);FileSafety.CheckPath(preferenceFile);if(File.Exists(preferenceFile))File.Replace(temporary,preferenceFile,null);else File.Move(temporary,preferenceFile);Language=value;}finally{if(File.Exists(temporary))File.Delete(temporary);}
+ }
  public static string TranslateDisplay(string text,string previousLanguage){
   if(previousLanguage==Language)return text;
   if(text.StartsWith("▾ ")||text.StartsWith("▸ "))return text.Substring(0,2)+TranslateDisplay(text.Substring(2),previousLanguage);
