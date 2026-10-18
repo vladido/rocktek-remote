@@ -12,9 +12,9 @@ $appSources=@('RockTekRemote','HidConsumerReader','InputDiagnostics','ActionExec
 if($LASTEXITCODE){throw 'Application compile failed'}
 $cloud=Join-Path $OutputDirectory 'CloudMusPlayPause.exe';$murglar=Join-Path $OutputDirectory 'MurglarRemote.exe'
 $wpf=Join-Path (Split-Path $csc) 'WPF'
-& $csc @common ('/out:'+$cloud) ('/r:'+$app) ('/r:'+$wpf+'\UIAutomationClient.dll') ('/r:'+$wpf+'\UIAutomationTypes.dll') ('/r:'+$wpf+'\WindowsBase.dll') "$PSScriptRoot\CloudMusPlayPause.cs" "$PSScriptRoot\CloudMusOptions.cs" "$PSScriptRoot\PlayerTarget.cs"
+& $csc @common ('/out:'+$cloud) ('/r:'+$app) ('/r:'+$wpf+'\UIAutomationClient.dll') ('/r:'+$wpf+'\UIAutomationTypes.dll') ('/r:'+$wpf+'\WindowsBase.dll') "$PSScriptRoot\CloudMusPlayPause.cs" "$PSScriptRoot\CloudMusOptions.cs" "$PSScriptRoot\PlayerTarget.cs" "$PSScriptRoot\PlayerClose.cs"
 if($LASTEXITCODE){throw 'CloudMus bridge compile failed'}
-& $csc @common ('/out:'+$murglar) /r:System.Management.dll "$PSScriptRoot\MurglarRemote.cs" "$PSScriptRoot\PlayerTarget.cs"
+& $csc @common ('/out:'+$murglar) /r:System.Management.dll "$PSScriptRoot\MurglarRemote.cs" "$PSScriptRoot\PlayerTarget.cs" "$PSScriptRoot\PlayerClose.cs"
 if($LASTEXITCODE){throw 'Murglar bridge compile failed'}
 New-Item -ItemType Directory -Force "$OutputDirectory\profiles"|Out-Null
 Copy-Item "$PSScriptRoot\profiles\CloudMus.json","$PSScriptRoot\profiles\Murglar.json" "$OutputDirectory\profiles"

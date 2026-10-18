@@ -34,8 +34,8 @@ python3 prepare-framework-references.py
 helper_options=(-nologo -sdk:4.5 -warnaserror:8001 -target:winexe -platform:x64 -optimize+ -win32res:dist/app-native.res -r:System.Windows.Forms.dll)
 mcs "${helper_options[@]}" -out:dist/CloudMusPlayPause.exe -r:dist/RockTekRemote.exe \
     -r:.build/net48/UIAutomationClient.dll -r:.build/net48/UIAutomationTypes.dll -r:.build/net48/WindowsBase.dll \
-    CloudMusPlayPause.cs CloudMusOptions.cs PlayerTarget.cs
-mcs "${helper_options[@]}" -out:dist/MurglarRemote.exe -r:System.Management.dll MurglarRemote.cs PlayerTarget.cs
+    CloudMusPlayPause.cs CloudMusOptions.cs PlayerTarget.cs PlayerClose.cs
+mcs "${helper_options[@]}" -out:dist/MurglarRemote.exe -r:System.Management.dll MurglarRemote.cs PlayerTarget.cs PlayerClose.cs
 mkdir -p dist/profiles
 cp profiles/CloudMus.json profiles/Murglar.json dist/profiles/
 mcs "${compiler_options[@]}" -out:dist/RockTekRemoteSetup.exe \

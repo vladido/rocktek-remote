@@ -36,16 +36,27 @@ public static class CloudMusPlayPause {
    return Result(9,"ERROR foreground-timeout pid="+target.Id);
   }
  }
+ static int Close(){
+  Process target=null;
+  try{
+   foreach(var p in Process.GetProcessesByName("cloudmus-qt")){
+    bool valid=false;try{valid=p.SessionId==Process.GetCurrentProcess().SessionId&&String.Equals(p.MainModule.FileName,Expected,StringComparison.OrdinalIgnoreCase);}catch{}
+    if(!valid){p.Dispose();continue;}
+    if(target!=null){p.Dispose();throw new InvalidOperationException("multiple-cloudmus-processes");}target=p;
+   }
+   return Result(0,PlayerClose.Run(target));
+  }finally{if(target!=null)target.Dispose();}
+ }
  [STAThread] public static int Main(string[] args){
   Directory.CreateDirectory(Path.GetDirectoryName(State));
   try{Expected=PlayerTarget.Parse(ref args,Expected);}catch(ArgumentException){return Result(10,"ERROR invalid-application-argument");}
-  bool opening=args.Length==1&&args[0]=="--open";
-  if(args.Length!=0&&!opening)return 10;
-  if(opening)State=Path.Combine(Path.GetDirectoryName(State),"cloudmus-open-state.txt");
-  using(var gate=new Mutex(false,opening?"Local\\CloudMusOpen-v1":"Local\\CloudMusPlayPause-v1")){
+  bool opening=args.Length==1&&args[0]=="--open",closing=args.Length==1&&args[0]=="--close";
+  if(args.Length!=0&&!opening&&!closing)return 10;
+  if(opening||closing)State=Path.Combine(Path.GetDirectoryName(State),closing?"cloudmus-close-state.txt":"cloudmus-open-state.txt");
+  using(var gate=new Mutex(false,opening||closing?"Local\\CloudMusOpen-v1":"Local\\CloudMusPlayPause-v1")){
    if(!gate.WaitOne(0))return 2;
    try{
-    if(opening)return Open();
+    if(opening)return Open();if(closing)return Close();
     uint id;GetWindowThreadProcessId(GetForegroundWindow(),out id);
     using(var p=Process.GetProcessById((int)id)){
      string expected=Expected;

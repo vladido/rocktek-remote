@@ -13,7 +13,10 @@ foreach($player in @('CloudMus','Murglar')){
  $helper=[ActionValidation]::ResolvePath($openAction.ApplicationPath,$file)
  Assert (Test-Path $helper) ($player+' helper resolves relative to JSON, not current directory')
  Assert ($openAction.Arguments.Contains('--application "'+$ok.ScopeApplicationPath+'"') -and $ok.Arguments.Contains('--application "'+$ok.ScopeApplicationPath+'"')) ($player+' exact configured target passed to bridge')
- Assert ($config.Buttons['Mute'].Action -eq 'Native' -and $config.Find(48).Action -eq 'Disabled') ($player+' native mute and no default shutdown')
+ Assert ($config.Buttons['Mute'].Action -eq 'Native') ($player+' native mute')
+ $close=$config.Find(443);$power=$config.Find(48)
+ Assert ($close.Action -eq 'LaunchApplication' -and $close.Scope -eq 'Global' -and !$close.Repeat -and $close.ApplicationPath -eq $ok.ApplicationPath -and $close.Arguments -eq ('--close --application "'+$ok.ScopeApplicationPath+'"')) ($player+' source closes exact configured player')
+ Assert ($power.Action -eq 'LaunchApplication' -and $power.Scope -eq 'Global' -and !$power.Repeat -and $power.ApplicationPath -eq '%WINDIR%\System32\shutdown.exe' -and $power.Arguments -eq '/s /t 0') ($player+' explicit shutdown without forced document loss')
  if($player -eq 'Murglar'){
   foreach($usage in @(554,150)){$rating=$config.Find($usage);Assert ($rating.Scope -eq 'Application' -and !$rating.Repeat -and $rating.ApplicationPath -eq $ok.ApplicationPath) ('Murglar rating guard '+$usage)}
   Assert ($config.Find(554).Arguments.StartsWith('--like ') -and $config.Find(150).Arguments.StartsWith('--dislike ')) 'heart toggle and track-only dislike defaults'

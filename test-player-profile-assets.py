@@ -10,7 +10,14 @@ for player, bridge in [('CloudMus', 'CloudMusPlayPause.exe'), ('Murglar', 'Murgl
     identities = [(b['InputType'], b['Usage']) for b in buttons.values()]
     assert len(identities) == len(set(identities)), (player, 'duplicate source/code')
     by_code = {b['Usage']: b for b in buttons.values() if b['InputType'] == 'Consumer'}
-    assert by_code[48]['Action'] == 'Disabled'
+    power = by_code[48]
+    assert power['Action'] == 'LaunchApplication' and power['Scope'] == 'Global' and not power['Repeat']
+    assert power['ApplicationPath'] == '%WINDIR%\\System32\\shutdown.exe'
+    assert power['Arguments'] == '/s /t 0' and '/f' not in power['Arguments']
+    close = by_code[443]
+    assert close['Action'] == 'LaunchApplication' and close['Scope'] == 'Global' and not close['Repeat']
+    assert close['ApplicationPath'] == '../' + bridge
+    assert close['Arguments'] == '--close --application "' + buttons['OK']['ScopeApplicationPath'] + '"'
     assert buttons['Mute']['Action'] == 'Native'
     target = buttons['OK']['ScopeApplicationPath']
     for name, mode in [('Home', '--open '), ('OK', '')]:
@@ -26,4 +33,4 @@ for player, bridge in [('CloudMus', 'CloudMusPlayPause.exe'), ('Murglar', 'Murgl
         if player == 'Murglar':
             assert b['Arguments'] == mode + '--application "' + target + '"'
             assert b['ApplicationPath'] == '../' + bridge
-    print('PASS', player, 'unique input identities, safe Power, exact bridge defaults and scopes')
+    print('PASS', player, 'unique input identities, explicit shutdown, exact close/play bridge defaults and scopes')
