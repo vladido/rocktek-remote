@@ -5,7 +5,7 @@ public static class PlayerTarget {
  public static string Parse(ref string[] args,string defaultPath){
   string target=defaultPath;bool seen=false;var keep=new System.Collections.Generic.List<string>();
   for(int i=0;i<args.Length;i++){if(args[i]!="--application"){keep.Add(args[i]);continue;}if(seen||++i>=args.Length)throw new ArgumentException("invalid-application-argument");seen=true;target=Environment.ExpandEnvironmentVariables(args[i]);}
-  if(String.IsNullOrWhiteSpace(target)||!Path.IsPathRooted(target)||target.IndexOf('"')>=0||!String.Equals(Path.GetExtension(target),".exe",StringComparison.OrdinalIgnoreCase))throw new ArgumentException("absolute-application-exe-required");
+  if(String.IsNullOrWhiteSpace(target)||target.Length<3||!Path.IsPathRooted(target)||!((target[0]>='A'&&target[0]<='Z')||(target[0]>='a'&&target[0]<='z'))||target[1]!=':'||(target[2]!='\\'&&target[2]!='/')||target.IndexOf(':',2)>=0||target.IndexOf('"')>=0||!String.Equals(Path.GetExtension(target),".exe",StringComparison.OrdinalIgnoreCase))throw new ArgumentException("absolute-local-application-exe-required");
   args=keep.ToArray();return Path.GetFullPath(target);
  }
 }

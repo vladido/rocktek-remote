@@ -4,11 +4,13 @@ function Assert($v,$s){if(!$v){throw "FAIL $s"};"PASS $s"}
 $root=Join-Path $env:LOCALAPPDATA 'RockTekRemote\Sandbox'
 $setup=Join-Path $Stage 'dist\RockTekRemoteSetup.exe'
 if(Test-Path "$root\settings.json"){[IO.File]::Move("$root\settings.json","$root\settings-scope-fixture-backup.json")}
+$profileHashesBefore=@{}
+foreach($name in @('CloudMus','Murglar')){$file=Join-Path $root ('profiles\'+$name+'.json');if(Test-Path $file){$profileHashesBefore[$name]=(Get-FileHash $file).Hash}}
 $p=Start-Process $setup -ArgumentList '--silent','--sandbox' -PassThru -Wait
 Assert ($p.ExitCode -eq 0) 'sandbox install exit'
 Assert (!(Test-Path "$root\settings.json")) 'fresh install leaves missing EXEs unconfigured until GUI Save'
 foreach($name in @('CloudMusPlayPause.exe','MurglarRemote.exe')){Assert (Test-Path (Join-Path $root $name)) ('bundled player helper '+$name);Assert ((Get-FileHash (Join-Path $root $name)).Hash -eq (Get-FileHash (Join-Path $Stage ('dist\'+$name))).Hash) ('exact embedded player helper '+$name)}
-foreach($name in @('CloudMus','Murglar')){Assert (Test-Path (Join-Path $root ('profiles\'+$name+'.json'))) ('bundled default profile '+$name)}
+foreach($name in @('CloudMus','Murglar')){$file=Join-Path $root ('profiles\'+$name+'.json');Assert (Test-Path $file) ('bundled default profile '+$name);$expected=if($profileHashesBefore.ContainsKey($name)){$profileHashesBefore[$name]}else{(Get-FileHash (Join-Path $Stage ('dist\profiles\'+$name+'.json'))).Hash};Assert ((Get-FileHash $file).Hash -eq $expected) ('embedded fresh profile or preserved existing bytes '+$name)}
 [Reflection.Assembly]::LoadFrom((Join-Path $Stage 'dist\RockTekRemote.exe'))|Out-Null
 [UiText]::Initialize([string[]]@("--language","ru"))
 [RemoteConfig]::Parse('{"MurglarPath":"Example.exe"}').Save("$root\settings.json")

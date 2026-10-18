@@ -11,7 +11,7 @@ public static class PlayerTargetTests {
   Check(args.Length==1&&args[0]=="--open","retain operation after target extraction");
   Check(Path.IsPathRooted(target)&&target.EndsWith("Test Player\\Murglar.exe"),"exact path with spaces");
   args=new[]{"--like"};Check(PlayerTarget.Parse(ref args,Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),"Murglar.exe")).EndsWith("Murglar.exe"),"legacy default");
-  foreach(var bad in new[]{new[]{"--application"},new[]{"--application","relative.exe"},new[]{"--application","C:\\bad.txt"},new[]{"--application","C:\\a.exe","--application","C:\\b.exe"}}){bool rejected=false;try{PlayerTarget.Parse(ref bad,"C:\\fallback.exe");}catch(ArgumentException){rejected=true;}Check(rejected,"reject malformed target flags");}
+  foreach(var bad in new[]{new[]{"--application"},new[]{"--application","relative.exe"},new[]{"--application","C:\\bad.txt"},new[]{"--application",@"\\server\share\player.exe"},new[]{"--application",@"C:\safe.exe:other.exe"},new[]{"--application","C:\\a.exe","--application","C:\\b.exe"}}){bool rejected=false;try{PlayerTarget.Parse(ref bad,"C:\\fallback.exe");}catch(ArgumentException){rejected=true;}Check(rejected,"reject malformed target flags");}
   Check(PlayerTarget.AssemblyDirectory==Path.GetDirectoryName(typeof(PlayerTarget).Assembly.Location),"assembly directory, not host directory");
   Console.WriteLine("PASS player target argument and location policy");return 0;
  }
