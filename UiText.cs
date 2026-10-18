@@ -151,6 +151,7 @@ public static class UiText {
   {"Вложенные шаги недопустимы.", "Nested steps are not allowed."},
   {"Ожидание задаётся отдельным шагом.", "Wait must be a separate step."},
   {"RockTek Remote · Установка", "RockTek Remote · Setup"},
+  {"RockTek Remote 2.2.0\n\nОбработчик — для текущего пользователя. Компонент «Назад» требует подтверждения администратора.\n\nПрограмма появится в меню Пуск и списке приложений Windows. Настройки, выбранные приложения и резервные копии OneDrive сохраняются.", "RockTek Remote 2.2.0\n\nThe handler is installed for the current user. The Back component requires administrator approval.\n\nThe app will appear in the Start menu and Windows Apps. Settings, selected applications and OneDrive backups are preserved."},
   {"RockTek Remote 2.0\n\nУстановка только для текущего пользователя, без администратора.\n\nПрограмма появится в меню Пуск и списке приложений Windows. Настройки, выбранные приложения и резервные копии OneDrive сохраняются.", "RockTek Remote 2.0\n\nInstall for the current user without administrator access.\n\nThe application will appear in the Start menu and Windows Apps. Settings, selected applications and OneDrive backups are preserved."},
   {"Установить", "Install"},
   {"Установлено. Настройки доступны в меню Пуск. Автозапуск — при следующем входе в Windows.", "Installed. Open settings from the Start menu. Autostart begins at the next sign-in."},

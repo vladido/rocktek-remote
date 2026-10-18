@@ -1,6 +1,7 @@
 ﻿param([string]$Assembly="$PSScriptRoot\dist\RockTekRemote.exe")
 $ErrorActionPreference="Stop"
 $env:ROCKTEK_REMOTE_DEVICE="AABBCCDDEEFF"
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\PlayerTests.ps1" -Stage $PSScriptRoot;if($LASTEXITCODE){throw 'Player tests failed'}
 & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\NativeBackTests.ps1";if($LASTEXITCODE){throw "Native Back tests failed"}
 & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\DeviceSelectionTests.ps1" -Assembly $Assembly;if($LASTEXITCODE){throw "Device selection/localization tests failed"}
 foreach($suite in @('LanguagePreference','LanguageGui')){& powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\${suite}Tests.ps1" -Assembly $Assembly;if($LASTEXITCODE){throw "$suite tests failed"}}

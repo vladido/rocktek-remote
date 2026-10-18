@@ -39,4 +39,13 @@ jobs:
             dist/RockTekRemoteSetup.exe
             dist/RockTekRemote-portable.zip
             dist/SHA256SUMS
+            dist/CloudMusPlayPause.exe
+            dist/MurglarRemote.exe
+            dist/profiles/*.json
+            native/timedhook.dll
+            native/service-runner.exe
+            native/fixture.exe
+            native/loader-fixture.exe
+            native/native-test.exe
+            native/provider.dll
           if-no-files-found: error

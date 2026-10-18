@@ -6,6 +6,20 @@
 
 A per-user Windows application for mapping a RockTek RC-G2 Bluetooth remote to keyboard shortcuts, application opening, files and links, mouse clicks and action sequences. Includes a graphical editor, button learning, light/dark themes, a tray menu and a self-contained installer. On first launch the interface follows the Windows UI language: Russian for Russian Windows, English otherwise. Use **Язык / Language** in the editor to switch; the choice is saved for later launches.
 
+## Ready-to-use CloudMus and Murglar profiles
+
+Both the installer and portable ZIP include two JSON profiles and their bridges, `CloudMusPlayPause.exe` and `MurglarRemote.exe`. No separate bridge installation, AutoHotkey or manual compilation is required. Installed profiles are in `%LOCALAPPDATA%\Programs\RockTekRemote\profiles`; portable profiles are in the adjacent `profiles` directory. Select the required JSON as your primary settings file. Upgrades preserve the selected profile, personal mappings and existing profile files.
+
+- **Home** starts a closed player or shows its existing instance, then waits for interface readiness. Repeated Home may wake the display; no wake suppression is applied.
+- **CloudMus 0.6.3:** first **OK** invokes the real Play button for the selected playlist; later presses pause/resume. Before a cold launch, the bridge changes only `[window] closeMinimizesToTray=false`, making the close button exit instead of hiding to the tray. CloudMus remains normally installed and updatable. Bookmark sends native `L`; Settings sends `D`.
+- **Murglar Desktop 6.8.163:** first **OK** without a loaded track starts **Yandex My Wave**, then pauses/resumes. **Bookmark** toggles the ordinary heart. **Settings** automatically selects **Don't recommend track**, never the artist. Murglar ends the rejected track and advances; this is not an undo-dislike toggle.
+- OK and ratings require the exact player EXE in the foreground and never repeat. Bridges use Windows UI Automation and the bundled Java Access Bridge, not coordinates, pointer movement or a fallback Space key. Murglar cold launches enable Java Accessibility only in that process environment, without global Java changes. Close an already-running Murglar without Accessibility and reopen it with Home.
+- **Back** sends `P` in these profiles; arrows send their normal keys, CH+/CH− adjust system volume, and Mute remains native. Unassigned service/digit buttons are disabled. Computer shutdown on Power is **disabled by default**.
+
+Template player paths are `%LOCALAPPDATA%\Programs\CloudMus\cloudmus-qt.exe` and `%USERPROFILE%\OneDrive\Murglar-Desktop-windows-x64\Murglar.exe`. For another location, update restricted buttons' scope EXEs and the bridge `--application "full EXE path"` argument on Home, OK and rating actions. Relative `../...exe` paths locate adjacent bridges; relocating JSON through the editor updates these correctly. Murglar requires a signed-in Yandex account with My Wave available. Player credentials and data are not shipped.
+
+Bridge state files live under `%LOCALAPPDATA%\RockTekRemote`: `cloudmus-open-state.txt`, `cloudmus-playpause-state.txt`, `murglar-open-state.txt`, `murglar-playpause-state.txt`, `murglar-like-state.txt`, `murglar-dislike-state.txt`. A foreground change during an operation rejects the action. Windows power and lock settings remain untouched.
+
 ## Additional RC-G2 button catalog
 
 [Observed codes for 25 additional buttons](catalog/README.md) are available as a separate JSON fragment. All additional entries are disabled; existing assignments are preserved. Adding the entries to your primary JSON does not require reinstalling the application.
@@ -36,7 +50,7 @@ Murglar supports the verified display-off path for `Space` pause/resume, `Left`/
 
 ## Back without display wake
 
-Setup 2.1.0 installs `%ProgramData%\RockTekRemote\NativeBack` and the SYSTEM task `RockTekRemote-NativeBack`. Installing/removing this machine component requires administrator approval; the mapper remains a normal-user application.
+Setup installs `%ProgramData%\RockTekRemote\NativeBack` and the SYSTEM task `RockTekRemote-NativeBack`. Installing/removing this machine component requires administrator approval; the mapper remains a normal-user application.
 
 While direct target HID intake is active and Back has a custom action, the component intercepts hidserv's duplicate BrowserBack before delivery through `WinStationSendWindowMessage`. Consumer `0x0224` still executes its saved mapping; use `P` scoped to Murglar for previous track. The system `hidserv.dll` on disk is unchanged; Mute and all other native messages are forwarded.
 
@@ -70,12 +84,12 @@ This device filter applies before decoding, learning and dispatch. Ordinary keyb
 
 ## Install and configure
 
-Download the ready-to-run files from the [latest release](https://gitea.nkdb.ru/admin/rocktek-remote/releases/tag/v2.1.1).
+Download the ready-to-run files from the [latest release](https://gitea.nkdb.ru/admin/rocktek-remote/releases/tag/v2.2.0).
 
 - **Installer:** download `RockTekRemoteSetup.exe` and follow the steps below.
 - **Portable:** download `RockTekRemote-portable.zip`, extract it to a folder you control and run `RockTekRemote.exe`. It does not install shortcuts or autostart entries; stop any other handler before launching it. Configure the remote and settings as described below.
 - **Source:** `RockTekRemote-source.zip` contains the complete source tree, tests and current screenshots.
-- `SHA256SUMS` contains SHA-256 checksums for the application, installer and portable ZIP.
+- `SHA256SUMS` contains SHA-256 checksums for the application, installer, bridges, both profiles and portable ZIP.
 
 1. Run the downloaded `RockTekRemoteSetup.exe` as your ordinary user.
 2. Setup installs the application under `%LOCALAPPDATA%\Programs\RockTekRemote`, adds a Start menu settings shortcut, an HKCU Windows Apps uninstall entry and an HKCU Run autostart entry.
