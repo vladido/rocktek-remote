@@ -7,12 +7,12 @@ foreach($player in @('CloudMus','Murglar')){
  $file=Join-Path $dist ('profiles\'+$player+'.json')
  Assert (Test-Path $file) ($player+' default profile is packaged')
  $config=[RemoteConfig]::Load($file)
- $home=$config.Buttons['Home'];$ok=$config.Buttons['OK']
- Assert ($home.Action -eq 'LaunchApplication' -and $home.Arguments.StartsWith('--open ') -and !$home.Repeat -and $home.Scope -eq 'Global') ($player+' native Home default')
+ $openAction=$config.Buttons['Home'];$ok=$config.Buttons['OK']
+ Assert ($openAction.Action -eq 'LaunchApplication' -and $openAction.Arguments.StartsWith('--open ') -and !$openAction.Repeat -and $openAction.Scope -eq 'Global') ($player+' native Home default')
  Assert ($ok.Action -eq 'LaunchApplication' -and !$ok.Repeat -and $ok.Scope -eq 'Application') ($player+' scoped native OK default')
- $helper=[ActionValidation]::ResolvePath($home.ApplicationPath,$file)
+ $helper=[ActionValidation]::ResolvePath($openAction.ApplicationPath,$file)
  Assert (Test-Path $helper) ($player+' helper resolves relative to JSON, not current directory')
- Assert ($home.Arguments.Contains('--application "'+$ok.ScopeApplicationPath+'"') -and $ok.Arguments.Contains('--application "'+$ok.ScopeApplicationPath+'"')) ($player+' exact configured target passed to bridge')
+ Assert ($openAction.Arguments.Contains('--application "'+$ok.ScopeApplicationPath+'"') -and $ok.Arguments.Contains('--application "'+$ok.ScopeApplicationPath+'"')) ($player+' exact configured target passed to bridge')
  Assert ($config.Buttons['Mute'].Action -eq 'Native' -and $config.Find(48).Action -eq 'Disabled') ($player+' native mute and no default shutdown')
  if($player -eq 'Murglar'){
   foreach($usage in @(554,150)){$rating=$config.Find($usage);Assert ($rating.Scope -eq 'Application' -and !$rating.Repeat -and $rating.ApplicationPath -eq $ok.ApplicationPath) ('Murglar rating guard '+$usage)}
