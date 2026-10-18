@@ -675,16 +675,6 @@
       "ScrollAmount": 1,
       "WaitMilliseconds": 0,
       "Steps": null
-    },
-    "Power": {
-      "InputType": "Consumer",
-      "Usage": 48,
-      "Action": "Disabled",
-      "Scope": "Global",
-      "ScopeApplicationPath": "",
-      "Repeat": false,
-      "Delay": 350,
-      "Interval": 150
     }
   }
 }

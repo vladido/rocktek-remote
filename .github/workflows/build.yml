@@ -29,6 +29,7 @@ jobs:
         shell: bash
         run: |
           python3 ./test-icon-assets.py
+          python3 ./test-player-profile-assets.py
           bash ./build.sh
       - name: Upload release files
         uses: actions/upload-artifact@v3
